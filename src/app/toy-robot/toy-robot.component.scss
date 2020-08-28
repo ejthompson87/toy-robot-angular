@@ -1,0 +1,54 @@
+$error-color: #FF4C4C;
+$break-width: 900px;
+$margin: 20px;
+
+.page-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: $margin;
+}
+
+.instructions {
+    margin: $margin;
+}
+
+.main-content {
+    display: flex;
+    flex-direction: row;
+
+    @media(max-width: $break-width) {
+        flex-direction: column;
+    }
+}
+
+.main-section {
+    margin: $margin;
+    width: 80%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.error-messages {
+    min-height: 20px;
+    margin-bottom: calc($margin-10px);
+    color: $error-color;
+}
+
+.command-history {
+    padding-top: 5px;
+    color: #2E8B57;
+}
+
+.command-input {
+    margin-top: 10px;
+}
+
+.invalid-cmd {
+    color: $error-color;
+}
+
+.report {
+    color: black;
+}

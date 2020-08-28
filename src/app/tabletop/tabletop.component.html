@@ -1,0 +1,11 @@
+<div *ngFor="let y of tableY">
+    <div class="table-row">
+        <div *ngFor="let x of tableX">
+            <app-tabletop-square *ngIf="robotPlaced"
+                [robot]="y === robotPosition.y && x === robotPosition.x"
+                [direction]="robotPosition.direction">
+            </app-tabletop-square>
+            <app-tabletop-square *ngIf="!robotPlaced"></app-tabletop-square>
+        </div>
+    </div>
+</div>

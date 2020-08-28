@@ -1,0 +1,23 @@
+<div class="page-content">
+    <div class="instructions"> {{ instructions }} </div>
+    <div class="error-messages">
+        <div *ngIf="errorMessage != null && errorMessage != ''"> {{ errorMessage }} </div>
+    </div>
+    <div class="main-content">
+        <div class="main-section">
+            <app-tabletop [robotPosition]="robotPosition" [robotPlaced]="robotPlaced"></app-tabletop>
+        </div>
+
+        <div class="main-section">
+            <form (ngSubmit)="onCommand()" class="command-input" #commandForm="ngForm">
+                <label for="command">Type command: </label>
+                <input type="text" class="form-control" autocomplete="off" name="command" id="command" [(ngModel)]="command" >
+            </form>
+            <div *ngFor="let cmd of commandHistory.slice().reverse()"
+                class="command-history"
+                [ngClass]="{'invalid-cmd': !cmd.valid, 'report': cmd.isReport}">
+                {{ cmd.command }}
+            </div>
+        </div>
+    </div>
+</div>
