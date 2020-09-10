@@ -13,41 +13,42 @@ export class ToyRobotComponent implements OnInit {
 
   public robotPlaced: boolean = false;
   public robotPosition: RobotPosition;
-  public instructions: string = "Allowed commands: PLACE X Y DIRECTION (eg: PLACE 1 1 WEST), MOVE, LEFT, RIGHT, REPORT";
-  public errorMessage: string;
-
   public command: string;
   public commandHistory: Array<CommandHistory> = [];
+  public errorMessage: string;
 
   constructor() { }
 
   ngOnInit(): void {
   }
 
-  onCommand() { 
-    this.errorMessage = "";
+  onCommand(): void {
+    this.errorMessage = '';
     if (this.command !== '') {
-      let currentCommand: CommandHistory = {
-        command: this.command,
-        valid: this.isValidCommand(this.command)
+      const command = this.command.toUpperCase();
+      const validCommand = this.isValidCommand(command);
+      if (validCommand) {
+        this.executeCommand(command);
       }
+      const currentCommand: CommandHistory = {
+        command: this.command,
+        valid: validCommand
+      };
       this.commandHistory.push(currentCommand);
     }
-    this.command = "";
+    this.command = '';
   }
 
   isValidCommand(command: string): boolean {
-    command = command.toUpperCase();
-    if (command.includes("PLACE")) {
-      return this.isValidPlace(command);
+    if (command.includes('PLACE')) {
+      return this.isValidPlaceCommand(command);
     }
     if (!this.robotPlaced) {
-      this.errorMessage = "Invalid command - You must first place robot"
+      this.errorMessage = 'Invalid command - You must first place robot';
       return false;
     }
-    for (let type of Object.values(Command)) {
+    for (const type of Object.values(Command)) {
       if (type === command) {
-        this.executeCommand(command);
         return true;
       }
     }
@@ -55,25 +56,21 @@ export class ToyRobotComponent implements OnInit {
     return false;
   }
 
-  isValidPlace(command: string): boolean {
-    let commands = command.split(" ");
-    if (commands[0].toUpperCase() === "PLACE" && commands.length >= 4) {
-      let x = this.getNumber(commands[1]);
-      let y = this.getNumber(commands[2]);
+  isValidPlaceCommand(command: string): boolean {
+    const commands = command.split(' ');
+    if (commands[0].toUpperCase() === 'PLACE' && commands.length >= 4) {
+      const x = this.getPositionNumber(commands[1]);
+      const y = this.getPositionNumber(commands[2]);
       if (x > -1 && y > -1) {
-        for (let direction of Object.values(Direction)) {
+        for (const direction of Object.values(Direction)) {
           if (commands[3].toUpperCase() === direction) {
-            this.robotPosition = {
-              x: x,
-              y: y,
-              direction: direction
-            }
+            this.robotPosition = { x, y, direction };
             this.robotPlaced = true;
             return true;
           }
         }
       } else {
-        this.errorMessage = "Invalid command - Robot can only by placed on 5 x 5 table";
+        this.errorMessage = 'Invalid command - Robot can only by placed on 5 x 5 table';
         return false;
       }
     }
@@ -81,90 +78,93 @@ export class ToyRobotComponent implements OnInit {
     return false;
   }
 
-  getNumber(str: string) {
-    let num = Number(str);
+  getPositionNumber(str: string): number {
+    const num = Number(str);
     if (!isNaN(num) && num > 0 && num < 6) {
       return num - 1;
     }
     return -1;
   }
 
-  getErrorMessage(robotPlaced: boolean) {
+  getErrorMessage(robotPlaced: boolean): string {
     if (robotPlaced) {
-      return "Invalid command - try MOVE, LEFT, RIGHT or REPORT";
+      return 'Invalid command - try MOVE, LEFT, RIGHT or REPORT';
     }
-    return "Invalid command - try PLACE 1 2 NORTH";
+    return 'Invalid command - try PLACE 1 2 NORTH';
   }
 
-  executeCommand(command) {
+  executeCommand(command: string): void {
     switch (command) {
-      case "MOVE": 
-        if (this.robotPosition.direction === Direction.north) {
-          if (this.robotPosition.y < 4) {
-            this.robotPosition.y++;
-            return;
-          }
-        }
-        if (this.robotPosition.direction === Direction.south) {
-          if (this.robotPosition.y > 0) {
-            this.robotPosition.y--;
-            return;
-          }
-        }
-        if (this.robotPosition.direction === Direction.east) {
-          if (this.robotPosition.x < 4) {
-            this.robotPosition.x ++;
-            return;
-          }
-        }
-        if (this.robotPosition.direction === Direction.west) {
-          if (this.robotPosition.x > 0) {
-            this.robotPosition.x --;
-            return;
-          }
-        }
-        this.errorMessage = "Robot refuses. He would fall off the table.";
-        return;
+      case Command.move:
+        this.moveRobot();
+        break;
 
-      case "LEFT":
-        if (this.robotPosition.direction === Direction.north) {
-          this.robotPosition.direction = Direction.west;
-          return;
-        }
-        if (this.robotPosition.direction === Direction.west) {
-          this.robotPosition.direction = Direction.south;
-          return;
-        }
-        if (this.robotPosition.direction === Direction.south) {
-          this.robotPosition.direction = Direction.east;
-          return;
-        }
-        if (this.robotPosition.direction === Direction.east) {
-          this.robotPosition.direction = Direction.north;
-          return;
-        }
+      case Command.left:
+        this.turnRobot(Command.left);
+        break;
 
-        case "RIGHT":
-        if (this.robotPosition.direction === Direction.north) {
-          this.robotPosition.direction = Direction.east;
-          return;
-        }
-        if (this.robotPosition.direction === Direction.east) {
+      case Command.right:
+        this.turnRobot(Command.right);
+        break;
+
+      case Command.report:
+        this.commandHistory.push({command: `X: ${this.robotPosition.x + 1}, Y: ${this.robotPosition.y + 1}, Direction: ${this.robotPosition.direction}`, valid: true, isReport: true});
+        break;
+    }
+  }
+
+  moveRobot(): void {
+    if (this.robotPosition.direction === Direction.north && this.robotPosition.y < 4) {
+      this.robotPosition.y++;
+      return;
+    }
+    if (this.robotPosition.direction === Direction.south && this.robotPosition.y > 0) {
+      this.robotPosition.y--;
+      return;
+    }
+    if (this.robotPosition.direction === Direction.east && this.robotPosition.x < 4) {
+      this.robotPosition.x++;
+      return;
+    }
+    if (this.robotPosition.direction === Direction.west && this.robotPosition.x > 0) {
+      this.robotPosition.x --;
+      return;
+    }
+    this.errorMessage = 'Robot refuses. He would fall off the table.';
+  }
+
+  turnRobot(turn: Command.left | Command.right): void {
+    if (turn === Command.left) {
+      switch (this.robotPosition.direction) {
+        case Direction.north:
+          this.robotPosition.direction =  Direction.west;
+          break;
+        case Direction.west:
           this.robotPosition.direction = Direction.south;
-          return;
-        }
-        if (this.robotPosition.direction === Direction.south) {
-          this.robotPosition.direction = Direction.west;
-          return;
-        }
-        if (this.robotPosition.direction === Direction.west) {
+          break;
+        case Direction.south:
+          this.robotPosition.direction = Direction.east;
+          break;
+        case Direction.east:
           this.robotPosition.direction = Direction.north;
-          return;
-        }
-          
-      case "REPORT":
-        this.commandHistory.push({command: `X: ${this.robotPosition.x+1}, Y: ${this.robotPosition.y+1}, Direction: ${this.robotPosition.direction}`, valid: true, isReport: true});
-        return;
+          break;
+      }
+    }
+    if (turn === Command.right) {
+      switch (this.robotPosition.direction) {
+        case Direction.north:
+          this.robotPosition.direction = Direction.east;
+          break;
+        case Direction.east:
+          this.robotPosition.direction = Direction.south;
+          break;
+        case Direction.south:
+          this.robotPosition.direction = Direction.west;
+          break;
+        case Direction.west:
+          this.robotPosition.direction = Direction.north;
+          break;
+      }
     }
   }
 
